@@ -1,0 +1,51 @@
+function consolidarTareas() {
+  const hojaDestino = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Managment");
+  hojaDestino.clearContents();
+  hojaDestino.appendRow(["TO DO'S", "STATUS", "NOTES", "DATE COMPLETED", "RESPONSIBLE"]);
+
+  const archivos = [
+    { id: "1gvFjiM4KC17zZL_lRJHH4SfC-Anmd-1o128FfJCuIw8", responsable: "Albert" },
+    { id: "1d0BxhRMxTA2jGXzUW-uW4eHOYAJcYZQoMDbCf4sQAyc", responsable: "Anell" },
+    { id: "1f8BL5E6qc-JX-pMpg0oboqg8OSE0n47KwdP_Qh-ySIc", responsable: "Mateo" },
+    { id: "1h3TLmVij5fdnLz8tRPpFTh2Q55ZRD3gRWOL3u7doOrU", responsable: "Santos" },
+    { id: "1di6sdcxjgudXehlBWEoliszUumLv6UGbRHVDGNCrMdg", responsable: "Aylen" },
+    { id: "1V4bywM2g6GWFAj4GTZ23HKqDu2FhdbS_SWhx_kqcZsI", responsable: "Dorys" }
+    
+  ];
+
+  archivos.forEach(archivo => {
+    const ss = SpreadsheetApp.openById(archivo.id);
+
+    // ----------- TAREAS ACTIVAS -------------
+    const hojaActiva = ss.getSheetByName("Daily To Dos");
+    if (hojaActiva) {
+      const colA = hojaActiva.getRange("A:A").getValues();
+      const reminderIndex = colA.findIndex(row => row[0] === "REMINDERS");
+      const ultimaFila = (reminderIndex > 0) ? reminderIndex : hojaActiva.getLastRow();
+      const numFilas = ultimaFila - 1;
+
+      if (numFilas > 0) {
+        const datosActivos = hojaActiva.getRange(2, 1, numFilas, 4).getValues(); // A2:D
+        datosActivos.forEach(fila => {
+          if (fila[0] !== "") { // Solo si la tarea (columna A) no está vacía
+            const filaConResponsable = [...fila, archivo.responsable];
+            hojaDestino.appendRow(filaConResponsable);
+          }
+        });
+      }
+    }
+
+    // ----------- TAREAS COMPLETADAS -------------
+    const hojaCompletada = ss.getSheetByName("Completed");
+    if (hojaCompletada) {
+      const datosCompletados = hojaCompletada.getDataRange().getValues();
+      for (let i = 1; i < datosCompletados.length; i++) {
+        const fila = datosCompletados[i];
+        if (fila[0] !== "") { // Solo si la tarea no está vacía
+          const filaConResponsable = [...fila, archivo.responsable];
+          hojaDestino.appendRow(filaConResponsable);
+        }
+      }
+    }
+  });
+}
